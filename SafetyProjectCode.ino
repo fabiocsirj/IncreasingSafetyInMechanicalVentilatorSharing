@@ -181,28 +181,31 @@ void loop() {
 
   ///-------------------------------- peak detection---------------------------------//
 
-  if (integrate == false && flowDifferential >= 100 && (timeNow - endTimeLastCycle) > 200){
-    integrate = true;
-    startTimeLastCycle = timeNow;
-  }
-  else if (flow < flowBefore && flow <= threshold && integrate == true){
-    integrate = false;
+  // if (integrate == false && flowDifferential >= 100 && (timeNow - endTimeLastCycle) > 200){
+  //   integrate = true;
+  //   startTimeLastCycle = timeNow;
+  // }
+  // else if (flow < flowBefore && flow <= threshold && integrate == true){
+  if (flow <= threshold && receivedVolume > 0) {
+    // integrate = false;
     endTimeLastCycle = timeNow;
     receivedVolPreviousCycle = receivedVolume; //store value of volume before the new cycle begins (does this before integration of current flow)
-    receivedVolume = 0; //reset for upcoming cycle
-
+    
     //check for alarm activation, based on target VT (referenceVolume)
     if (receivedVolPreviousCycle < referenceVolume){
       alarm = true;
       digitalWrite(ledAlarm, HIGH);
       tone(soundAlarm,1000);
     }
+
+    //display volume achieved on the previous cycle, and alarm, if activated
+    updateScreen(receivedVolPreviousCycle, referenceVolume, alarm);
+
+    receivedVolume = 0; //reset for upcoming cycle
   }
   
-  //display volume achieved on the previous cycle, and alarm, if activated
-  updateScreen(receivedVolPreviousCycle, referenceVolume, alarm);
-  
-  if (integrate == true){
+  // if (integrate == true){
+  if (receivedVolume > 0 || (flowDifferential >= 100 && (timeNow - endTimeLastCycle) > 200)){
     receivedVolume += (timeInterval * (flow + flowBefore)/2000);
   }
   
